@@ -2,15 +2,15 @@ using MatrixAlgorithms
 using Test
 
 @testset "IntegerStrassen" begin
-    for k in 1:8
-        A, B = rand(1:100, 2^k, 2^k), rand(1:100, 2^k, 2^k)
-        @test Strassen(A, B) == A * B
+    for k in 1:256
+        A, B = rand(1:100, k, k), rand(1:100, k, k)
+        @test Strassen(A, B) == AugmentMatrix(A) * AugmentMatrix(B)
     end
 end
 
 @testset "FloatStrassen" begin
-    for k in 1:8
-        A, B = Float64.(rand(2^k, 2^k)), Float64.(rand(2^k, 2^k))
-        @test isapprox(Strassen(A, B), A * B, atol=10^(-8))
+    for k in 1:256
+        A, B = Float64.(rand(k, k)), Float64.(rand(k, k))
+        @test isapprox(Strassen(A, B), AugmentMatrix(A) * AugmentMatrix(B), atol=10^(-8))
     end
 end

@@ -63,8 +63,8 @@ function Strassen(A, B)
         return A * B
     end
 
-    A11, A12, A21, A22 = SplitMatrix(A)
-    B11, B12, B21, B22 = SplitMatrix(B)
+    A11, A12, A21, A22 = SplitMatrix(AugmentMatrix(A))
+    B11, B12, B21, B22 = SplitMatrix(AugmentMatrix(B))
     
     M1 = Strassen(A11 + A22, (B11 + B22))
     M2 = Strassen(A21 + A22, B11)
