@@ -1,0 +1,7 @@
+name = "Project"
+uuid = "43898983-1bb7-4e05-b160-02c594ec0c93"
+authors = ["Krzysztof Pęczek <peczek.kr@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
