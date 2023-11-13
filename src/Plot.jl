@@ -1,7 +1,7 @@
 module Plot
     using Revise
-    using MatrixAlgorithms
     using CSV, Tables
+    using MatrixAlgorithms
 
     function compute_total_operations(sizes, algorithm, samples=3, verbose=false)
         operations = []
@@ -9,16 +9,25 @@ module Plot
         for n in sizes
             additions = 0
             multiplications = 0
+
+            if verbose
+                print("Wokring on n = ", n)
+            end
+
             for sample in 1:samples
                 A, B = AugmentMatrix(Float64.(rand(n, n))), AugmentMatrix(Float64.(rand(n, n)))
                 solution = algorithm(A, B)
                 additions += solution.add
                 multiplications += solution.mul
+
+                if verbose 
+                    print("...", sample)
+                end
             end
             
-            if verbose
-                println("Done for n = ", n)
-            end
+            if(verbose)
+                println("")
+            end            
 
             data_point = (size=n, add=additions/samples, mul=multiplications/samples)
             push!(operations, data_point)
