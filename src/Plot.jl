@@ -3,7 +3,7 @@ module Plot
     using MatrixAlgorithms
     using CSV, Tables
 
-    function compute_total_operations(sizes, algorithm, samples=3)
+    function compute_total_operations(sizes, algorithm, samples=3, verbose=false)
         operations = []
 
         for n in sizes
@@ -16,6 +16,10 @@ module Plot
                 multiplications += solution.mul
             end
             
+            if verbose
+                println("Done for n = ", n)
+            end
+
             data_point = (size=n, add=additions/samples, mul=multiplications/samples)
             push!(operations, data_point)
         end
