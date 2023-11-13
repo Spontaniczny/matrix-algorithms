@@ -82,4 +82,61 @@ function Strassen(A, B)
     return [C11 C12; C21 C22]
 end
 
+function CountedBinet(A, B)
+    if size(A) == (1, 1) || size(B) == (1, 1)
+        return (res=A * B, add=0, mul=1)
+    end
+
+    A11, A12, A21, A22 = SplitMatrix(AugmentMatrix(A))
+    B11, B12, B21, B22 = SplitMatrix(AugmentMatrix(B))
+
+    M1 = CountedBinet(A11, B11)
+    M2 = CountedBinet(A12, B21)
+    M3 = CountedBinet(A11, B12)
+    M4 = CountedBinet(A12, B22)
+    M5 = CountedBinet(A21, B11)
+    M6 = CountedBinet(A22, B21)
+    M7 = CountedBinet(A21, B12)
+    M8 = CountedBinet(A22, B22)
+
+    C11 = M1.res + M2.res
+    C12 = M3.res + M4.res
+    C21 = M5.res + M6.res
+    C22 = M7.res + M8.res
+
+    Ms = [M1, M2, M3, M4, M5, M6, M7, M8]
+    matrix_addition_cost = div(n, 2)^2
+    total_additions = sum(map(M -> M.add, Ms)) + matrix_addition_cost * 4
+    total_multiplications = sum(map(M -> M.mul, Ms))
+
+    return (res=[C11 C12; C21 C22],
+            add=total_additions,
+            mul=total_multiplications)
+end
+
+function Binet(A, B)
+    if size(A) == (1, 1) || size(B) == (1, 1)
+        return A * B
+    end
+
+    A11, A12, A21, A22 = SplitMatrix(AugmentMatrix(A))
+    B11, B12, B21, B22 = SplitMatrix(AugmentMatrix(B))
+
+    M1 = Binet(A11, B11)
+    M2 = Binet(A12, B21)
+    M3 = Binet(A11, B12)
+    M4 = Binet(A12, B22)
+    M5 = Binet(A21, B11)
+    M6 = Binet(A22, B21)
+    M7 = Binet(A21, B12)
+    M8 = Binet(A22, B22)
+
+    C11 = M1.res + M2.res
+    C12 = M3.res + M4.res
+    C21 = M5.res + M6.res
+    C22 = M7.res + M8.res
+
+    return [C11 C12; C21 C22]
+end
+
 end # module MatrixAlgorithms
