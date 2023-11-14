@@ -104,6 +104,7 @@ function CountedBinet(A, B)
     C21 = M5.res + M6.res
     C22 = M7.res + M8.res
 
+    n, _ = size(A)
     Ms = [M1, M2, M3, M4, M5, M6, M7, M8]
     matrix_addition_cost = div(n, 2)^2
     total_additions = sum(map(M -> M.add, Ms)) + matrix_addition_cost * 4
