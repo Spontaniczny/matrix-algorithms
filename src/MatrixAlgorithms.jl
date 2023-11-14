@@ -4,7 +4,7 @@ module MatrixAlgorithms
 using Revise
 using PaddedViews
 
-export Strassen, SplitMatrix, CountedStrassen, AugmentMatrix
+export Strassen, SplitMatrix, Strassen, CountedStrassen, Binet, CountedBinet, AugmentMatrix
 
 function SplitMatrix(A)
     n, _ = div.(size(A), 2)
@@ -132,10 +132,10 @@ function Binet(A, B)
     M7 = Binet(A21, B12)
     M8 = Binet(A22, B22)
 
-    C11 = M1.res + M2.res
-    C12 = M3.res + M4.res
-    C21 = M5.res + M6.res
-    C22 = M7.res + M8.res
+    C11 = M1 + M2
+    C12 = M3 + M4
+    C21 = M5 + M6
+    C22 = M7 + M8
 
     return [C11 C12; C21 C22]
 end
