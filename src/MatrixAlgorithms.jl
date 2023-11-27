@@ -5,7 +5,7 @@ using Revise
 using PaddedViews
 using LinearAlgebra
 
-export Strassen, SplitMatrix, Strassen, CountedStrassen, Binet, CountedBinet, AugmentMatrix
+export Strassen, SplitMatrix, Strassen, CountedStrassen, Binet, CountedBinet, AugmentMatrix, Inverse, DecompositionLU, Determinant
 
 function SplitMatrix(A)
     n, _ = div.(size(A), 2)
@@ -141,7 +141,7 @@ function Binet(A, B)
     return [C11 C12; C21 C22]
 end
 
-function CountedReverse(A)
+function CountedInverse(A)
 
     if size(A) == (1, 1)
         return (res=hcat(1 / A[1, 1]), add=0, mul=1)
@@ -156,16 +156,16 @@ function CountedReverse(A)
 
     A11, A12, A21, A22 = SplitMatrix(AugmentMatrix(A))
 
-    M1 = A11_rev = CountedReverse(A11)
+    M1 = A11_rev = CountedInverse(A11)
     # M2 missing dou to an error 
     M3 = A21_A11_rev = CountedStrassen(A21, M1.res)
     M4 = CountedStrassen(M3.res, A12)
     S22 = A22 - M4.res  # add to total_additions
-    M5 = B22 = S22_rev = CountedReverse(S22)
+    M5 = B22 = S22_rev = CountedInverse(S22)
     M6 = CountedStrassen(A12, S22_rev.res)
     M7 = CountedStrassen(M6.res, A21_A11_rev.res)
     M8 = B11 = CountedStrassen(A11_rev.res, I + M7.res) # add to total_additions
-    M9 = A12_rev = CountedReverse(A12)
+    M9 = A12_rev = CountedInverse(A12)
     M10 = CountedStrassen(-A11_rev.res, A12_rev.res)
     M11 = B12 = CountedStrassen(M10.res, S22_rev.res)
     M12 = B21 = CountedStrassen(-S22_rev.res, A21_A11_rev.res)
@@ -180,7 +180,7 @@ function CountedReverse(A)
             mul=total_multiplications)
 end 
 
-function Reverse(A)
+function Inverse(A)
     if size(A) == (1, 1)
         return hcat(1 / A[1, 1])
     end
@@ -194,16 +194,16 @@ function Reverse(A)
 
     A11, A12, A21, A22 = SplitMatrix(AugmentMatrix(A))
 
-    M1 = A11_rev = Reverse(A11)
+    M1 = A11_rev = Inverse(A11)
     # M2 missing dou to an error 
     M3 = A21_A11_rev = Strassen(A21, M1)
     M4 = Strassen(M3, A12)
     S22 = A22 - M4.res  
-    B22 = S22_rev = Reverse(S22)
+    B22 = S22_rev = Inverse(S22)
     M6 = Strassen(A12, S22_rev)
     M7 = Strassen(M6, A21_A11_rev)
     B11 = Strassen(A11_rev, I + M7) 
-    A12_rev = Reverse(A12)
+    A12_rev = Inverse(A12)
     M10 = Strassen(-A11_rev, A12_rev)
     B12 = Strassen(M10, S22_rev)
     B21 = Strassen(-S22_rev, A21_A11_rev)
@@ -221,9 +221,9 @@ function CounterDecompositionLU(A)
     A11, A12, A21, A22 = SplitMatrix(AugmentMatrix(A))
     M1 = CountedDecompositionLU(A11)
     L11, U11 = M1.res
-    M2 = U11_rev = CountedReverse(U11)
+    M2 = U11_rev = CountedInverse(U11)
     M3 = L21 = CountedStrassen(A21, U11_rev.res)
-    M4 = L11_rev = CountedReverse(L11)
+    M4 = L11_rev = CountedInverse(L11)
     M5 = U12 = CountedStrassen(L11_rev.res, A12)
     M6 = CountedStrassen(L21.res, U12.res)
     S = A22 - M6.res  # add to total_additions
@@ -249,9 +249,9 @@ function DecompositionLU(A)
 
     A11, A12, A21, A22 = SplitMatrix(AugmentMatrix(A))
     L11, U11 = DecompositionLU(A11)
-    U11_rev = Reverse(U11)
+    U11_rev = Inverse(U11)
     L21 = Strassen(A21, U11_rev)
-    L11_rev = Reverse(L11)
+    L11_rev = Inverse(L11)
     U12 = Strassen(L11_rev, A12)
     S = A22 - Strassen(L21, U12)
     L22, U22 = DecompositionLU(S)
