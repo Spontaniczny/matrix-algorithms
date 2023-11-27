@@ -263,11 +263,14 @@ end
 
 
 function Determinant(A)
-    if size(A) == (1, 1)
+    n, _ = size(A)
+    if size(A) != (n, n)
+        return "Error"
+    elseif n == 1
         return A[1, 1]
-    elseif size(A) == (2, 2)
+    elseif n == 2
         return A[1, 1] * A[2, 2] - A[1, 2] * A[2, 1]
-    elseif size(A) == (3, 3)
+    elseif n == 3
         a1 = A[1, 1] * A[2, 2] * A[3, 3] - A[1, 3] * A[2, 2] * A[3, 1]
         a2 = A[2, 1] * A[3, 2] * A[1, 3] - A[2, 3] * A[3, 2] * A[1, 1]
         a3 = A[3, 1] * A[1, 2] * A[2, 3] - A[3, 3] * A[1, 2] * A[2, 1]
@@ -275,11 +278,53 @@ function Determinant(A)
     end
 
     L, U = DecompositionLU(A)
+    det = 1
     if L[1, 1] == 1
-
+        for i in 1:n
+            det *= U[i, i]
+        end
+        return det
     end
 
+    for i in 1:n
+        det *= U[i, i] * L[i, i]
+    end
 
+    return det
+end
 
+function CountedDeterminant(A)
+    n, _ = size(A)
+    if size(A) != (n, n)
+        return "Error"
+    elseif n == 1
+        return (res=A[1, 1], add=0, mul=0)
+    elseif n == 2
+        return (res=A[1, 1] * A[2, 2] - A[1, 2] * A[2, 1], add=1, mul=2)
+    elseif n == 3
+        a1 = A[1, 1] * A[2, 2] * A[3, 3] - A[1, 3] * A[2, 2] * A[3, 1]
+        a2 = A[2, 1] * A[3, 2] * A[1, 3] - A[2, 3] * A[3, 2] * A[1, 1]
+        a3 = A[3, 1] * A[1, 2] * A[2, 3] - A[3, 3] * A[1, 2] * A[2, 1]
+        return (res=a1 + a2 + a3, add=5, mul=12)
+    end
+
+    M1 = CountedDecompositionLU(A)
+    L, U = M1.res
+    total_additions = sum(map(M -> M.add, M1))
+    total_multiplications = sum(map(M -> M.mul, M1))
+
+    det = 1
+    if L[1, 1] == 1
+        for i in 1:n
+            det *= U[i, i]
+        end
+        return (res=det, add=total_additions, mul=total_multiplications + n)
+    end
+
+    for i in 1:n
+        det *= U[i, i] * L[i, i]
+    end
+
+    return (res=det, add=total_additions, mul=total_multiplications + 2n)
 end
 end # module MatrixAlgorithms
