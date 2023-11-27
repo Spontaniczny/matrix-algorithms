@@ -259,6 +259,26 @@ function DecompositionLU(A)
     L = [L11 zeros(size(L11)); L21 L22]
     U = [U11 U12; zeros(size(U11)) U22]
     return L, U
+end
+
+
+function Determinant(A)
+    if size(A) == (1, 1)
+        return A[1, 1]
+    elseif size(A) == (2, 2)
+        return A[1, 1] * A[2, 2] - A[1, 2] * A[2, 1]
+    elseif size(A) == (3, 3)
+        a1 = A[1, 1] * A[2, 2] * A[3, 3] - A[1, 3] * A[2, 2] * A[3, 1]
+        a2 = A[2, 1] * A[3, 2] * A[1, 3] - A[2, 3] * A[3, 2] * A[1, 1]
+        a3 = A[3, 1] * A[1, 2] * A[2, 3] - A[3, 3] * A[1, 2] * A[2, 1]
+        return a1 + a2 + a3 
+    end
+
+    L, U = DecompositionLU(A)
+    if L[1, 1] == 1
+
+    end
+
 
 
 end
