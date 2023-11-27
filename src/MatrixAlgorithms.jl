@@ -213,4 +213,53 @@ function Reverse(A)
     return [B11 B12; B21 B22]
 end
 
+function CounterDecompositionLU(A)
+    if size(A) == (1, 1)
+        return (res = (hcat(1), hcat(A[1, 1])), add=0, mul=1)
+    end
+
+    A11, A12, A21, A22 = SplitMatrix(AugmentMatrix(A))
+    M1 = CountedDecompositionLU(A11)
+    L11, U11 = M1.res
+    M2 = U11_rev = CountedReverse(U11)
+    M3 = L21 = CountedStrassen(A21, U11_rev.res)
+    M4 = L11_rev = CountedReverse(L11)
+    M5 = U12 = CountedStrassen(L11_rev.res, A12)
+    M6 = CountedStrassen(L21.res, U12.res)
+    S = A22 - M6.res  # add to total_additions
+    M7 = CountedDecompositionLU(S)
+    L22, U22 = M7.res
+
+    Ms = [M1, M2, M3, M4, M5, M6, M7]
+    total_additions = sum(map(M -> M.add, Ms)) + length(A22)
+    total_multiplications = sum(map(M -> M.mul, Ms))
+
+    L = [L11 zeros(size(L11)); L21 L22]
+    U = [U11 U12; zeros(size(U11)) U22]
+
+    return (res=(L, U),
+            add=total_additions,
+            mul=total_multiplications)
+end
+
+function DecompositionLU(A)
+    if size(A) == (1, 1)
+        return hcat(1), hcat(A[1, 1])
+    end
+
+    A11, A12, A21, A22 = SplitMatrix(AugmentMatrix(A))
+    L11, U11 = DecompositionLU(A11)
+    U11_rev = Reverse(U11)
+    L21 = Strassen(A21, U11_rev)
+    L11_rev = Reverse(L11)
+    U12 = Strassen(L11_rev, A12)
+    S = A22 - Strassen(L21, U12)
+    L22, U22 = DecompositionLU(S)
+
+    L = [L11 zeros(size(L11)); L21 L22]
+    U = [U11 U12; zeros(size(U11)) U22]
+    return L, U
+
+
+end
 end # module MatrixAlgorithms
