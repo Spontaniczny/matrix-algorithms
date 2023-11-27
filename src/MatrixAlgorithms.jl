@@ -3,6 +3,7 @@ module MatrixAlgorithms
 
 using Revise
 using PaddedViews
+using LinearAlgebra
 
 export Strassen, SplitMatrix, Strassen, CountedStrassen, Binet, CountedBinet, AugmentMatrix
 
@@ -138,6 +139,78 @@ function Binet(A, B)
     C22 = M7 + M8
 
     return [C11 C12; C21 C22]
+end
+
+function CountedReverse(A)
+
+    if size(A) == (1, 1)
+        return (res=hcat(1 / A[1, 1]), add=0, mul=1)
+    end
+
+    if size(A) == (2, 2)
+        a, c, b, d = A
+        x = a * d - b * c
+        mat = [d/x -b/x; -c/x a/x]
+        return (res=mat, add=1, mul=6)  # do we count -b as (-1) * b?
+    end
+
+    A11, A12, A21, A22 = SplitMatrix(AugmentMatrix(A))
+
+    M1 = A11_rev = CountedReverse(A11)
+    # M2 missing dou to an error 
+    M3 = A21_A11_rev = CountedStrassen(A21, M1.res)
+    M4 = CountedStrassen(M3.res, A12)
+    S22 = A22 - M4.res  # add to total_additions
+    M5 = B22 = S22_rev = CountedReverse(S22)
+    M6 = CountedStrassen(A12, S22_rev.res)
+    M7 = CountedStrassen(M6.res, A21_A11_rev.res)
+    M8 = B11 = CountedStrassen(A11_rev.res, I + M7.res) # add to total_additions
+    M9 = A12_rev = CountedReverse(A12)
+    M10 = CountedStrassen(-A11_rev.res, A12_rev.res)
+    M11 = B12 = CountedStrassen(M10.res, S22_rev.res)
+    M12 = B21 = CountedStrassen(-S22_rev.res, A21_A11_rev.res)
+
+
+    Ms = [M1, M3, M4, M5, M6, M7, M8, M9, M10, M11, M12]
+    total_additions = sum(map(M -> M.add, Ms)) + length(A22) + length(A11)
+    total_multiplications = sum(map(M -> M.mul, Ms))
+
+    return (res=[B11 B12; B21 B22],
+            add=total_additions,
+            mul=total_multiplications)
+end 
+
+function Reverse(A)
+    if size(A) == (1, 1)
+        return hcat(1 / A[1, 1])
+    end
+
+    if size(A) == (2, 2)
+        a, c, b, d = A
+        x = a * d - b * c
+        mat = [d/x -b/x; -c/x a/x]
+        return mat
+    end
+
+    A11, A12, A21, A22 = SplitMatrix(AugmentMatrix(A))
+
+    M1 = A11_rev = Reverse(A11)
+    # M2 missing dou to an error 
+    M3 = A21_A11_rev = Strassen(A21, M1)
+    M4 = Strassen(M3, A12)
+    S22 = A22 - M4.res  
+    B22 = S22_rev = Reverse(S22)
+    M6 = Strassen(A12, S22_rev)
+    M7 = Strassen(M6, A21_A11_rev)
+    B11 = Strassen(A11_rev, I + M7) 
+    A12_rev = Reverse(A12)
+    M10 = Strassen(-A11_rev, A12_rev)
+    B12 = Strassen(M10, S22_rev)
+    B21 = Strassen(-S22_rev, A21_A11_rev)
+
+
+
+    return [B11 B12; B21 B22]
 end
 
 end # module MatrixAlgorithms
