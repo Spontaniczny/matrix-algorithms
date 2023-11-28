@@ -45,7 +45,9 @@ end
 function benchmark(functions::Vector{Function}, sizes::AbstractArray{Int, 1}, n_evals::Int, variant::Symbol)::Result
     data = Channel{Vector{Float64}}() do results
         for data in cases(sizes)
+            print("Another datapoint")
             for (i, f) in enumerate(functions)
+                println("\tFunction nr: $i")
                 @threads :dynamic for _ in 1:n_evals
                     if variant === :time
                         time = @elapsed f(data)
