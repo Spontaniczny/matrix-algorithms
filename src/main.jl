@@ -26,9 +26,9 @@ end
 function force_precompilation()::Nothing
     a = rand(8, 8)
     @sync begin
-        # @spawn lu_decompose(a)
+        @spawn lu_decompose(a)
         @spawn determinant(a)
-        # @spawn inverse(a)
+        @spawn inverse(a)
     end
 
     nothing
@@ -38,7 +38,7 @@ function main()
     force_precompilation()
 
     functions = [lu_decompose, determinant, inverse]
-    domain = 2 .^ collect(2:2)
+    domain = 2 .^ collect(1:9)
 
     benchmark(functions, domain, 1, :flops) |> 
         to_dataframe |> 
