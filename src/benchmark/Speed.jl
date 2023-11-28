@@ -1,6 +1,7 @@
 module Speed
 export benchmark, Result
 
+using LinearAlgebra: det
 using Base.Threads
 using GFlops
 
@@ -13,10 +14,19 @@ function hstack(vectors::Channel{Vector{Float64}})::Matrix{Float64}
     reduce(hcat, vectors)
 end
 
+function get_invertible(size)::Matrix
+    while(true)
+        matrix = rand(1:9, size, size)
+        if det(matrix) != 0
+            return matrix
+        end
+    end
+end
+
 function cases(sizes::AbstractArray{Int, 1})::Channel{Matrix{Float64}}
     Channel{Matrix{Float64}}() do channel
         for s in sizes
-            put!(channel, rand(s, s))
+            put!(channel, get_invertible(s))
         end
     end
 end
