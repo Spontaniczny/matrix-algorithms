@@ -4,14 +4,14 @@ export inverse, inverse!
 MatrixOrView = Union{ Matrix, SubArray }
 
 # TODO: Move to Common.jl or sth
-function split_view(matrix::MatrixOrView)::SubArray
+function split_view(matrix::MatrixOrView)
     n, _ = div.(size(matrix), 2)
-    return @inbounds @views begin 
-        matrix[begin:n, begin:n]
-        matrix[begin:n, n+1:end]
-        matrix[n+1:end, begin:n]
-        matrix[n+1:end, n+1:end]
-    end
+    A11 = @views matrix[begin:n, begin:n]
+    A12 = @views matrix[begin:n, n+1:end]
+    A21 = @views matrix[n+1:end, begin:n]
+    A22 = @views matrix[n+1:end, n+1:end]
+
+    return A11, A12, A21, A22
 end
 
 function inverse(matrix::Matrix)::Matrix

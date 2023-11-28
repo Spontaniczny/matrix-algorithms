@@ -23,7 +23,20 @@ function save(df::DataFrame)
     end
 end
 
+function force_precompilation()::Nothing
+    a = rand(8, 8)
+    @sync begin
+        # @spawn lu_decompose(a)
+        @spawn determinant(a)
+        # @spawn inverse(a)
+    end
+
+    nothing
+end
+
 function main()
+    force_precompilation()
+
     functions = [lu_decompose, determinant, inverse]
     domain = 2 .^ collect(2:2)
 
