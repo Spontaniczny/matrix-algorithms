@@ -2,12 +2,16 @@ push!(LOAD_PATH, @__DIR__)
 using Imports
 Imports.@load_src_directories(".")
 
-using Multiplication: Strassen
+using Inverse: inverse!
+
 
 function main()
-    A, B = rand(2, 2), rand(2, 2)
-    C = Strassen(A, B)
-    println(C)
+    A = rand(2, 2)
+    A_inv = inverse!(A)
+    println("Real solution")
+    display(inv(A))
+    println("Our solution")
+    display(A_inv)
 end
 
 main()

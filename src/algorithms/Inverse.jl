@@ -1,36 +1,42 @@
 module Inverse
+export inverse, inverse!
 
-function Inverse(A)
-    if size(A) == (1, 1)
-        return hcat(1 / A[1, 1])
+MatrixOrView = Union{ Matrix, SubArray }
+
+function split_view(matrix::MatrixOrView)::SubArray
+    n, _ = div.(size(matrix), 2)
+    return @inbounds @views begin 
+        matrix[begin:n, begin:n]
+        matrix[begin:n, n+1:end]
+        matrix[n+1:end, begin:n]
+        matrix[n+1:end, n+1:end]
+    end
+end
+
+function inverse(matrix::Matrix)::Matrix
+    @assert ispow2(size(matrix, 1))
+    matrix |> copy |> inverse!
+end
+
+function inverse!(matrix::MatrixOrView)::MatrixOrView
+    n = size(matrix, 1)
+
+    if n <= 2
+        return inv(matrix)
     end
 
-    if size(A) == (2, 2)
-        a, c, b, d = A
-        x = a * d - b * c
-        mat = [d/x -b/x; -c/x a/x]
-        return mat
-    end
+    A11, A12, A21, A22 = split_view(matrix)
+    A11_inverse = inverse!(A11)
 
-    A11, A12, A21, A22 = SplitMatrix(AugmentMatrix(A))
+    A22 .-= A21 * A11_inverse * A12
+    A22_inverse = inverse!(A22)
 
-    M1 = A11_rev = Inverse(A11)
-    # M2 missing dou to an error 
-    M3 = A21_A11_rev = Strassen(A21, M1)
-    M4 = Strassen(M3, A12)
-    S22 = A22 - M4.res  
-    B22 = S22_rev = Inverse(S22)
-    M6 = Strassen(A12, S22_rev)
-    M7 = Strassen(M6, A21_A11_rev)
-    B11 = Strassen(A11_rev, I + M7) 
-    A12_rev = Inverse(A12)
-    M10 = Strassen(-A11_rev, A12_rev)
-    B12 = Strassen(M10, S22_rev)
-    B21 = Strassen(-S22_rev, A21_A11_rev)
+    A11_inverse_copy = copy(A11_inverse)
+    A11_inverse .=  A11_inverse_copy + A11_inverse_copy * A12 * A22_inverse * A21 * A11_inverse_copy
+    A12 .= -A11_inverse_copy * A12 * A22_inverse
+    A21 .= -A22_inverse * A21 * A11_inverse_copy
 
-
-
-    return [B11 B12; B21 B22]
+    return matrix
 end
 
 end # Inverse
