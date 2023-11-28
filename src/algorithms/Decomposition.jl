@@ -1,3 +1,5 @@
+module Decomposition
+
 function DecompositionLU(A)
     if size(A) == (1, 1)
         return hcat(1), hcat(A[1, 1])
@@ -16,3 +18,5 @@ function DecompositionLU(A)
     U = [U11 U12; zeros(size(U11)) U22]
     return L, U
 end
+
+end # Decomposition

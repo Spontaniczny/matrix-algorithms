@@ -1,3 +1,5 @@
+module Inverse
+
 function Inverse(A)
     if size(A) == (1, 1)
         return hcat(1 / A[1, 1])
@@ -30,3 +32,5 @@ function Inverse(A)
 
     return [B11 B12; B21 B22]
 end
+
+end # Inverse
