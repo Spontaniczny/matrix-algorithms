@@ -3,6 +3,7 @@ export inverse, inverse!
 
 MatrixOrView = Union{ Matrix, SubArray }
 
+# TODO: Move to Common.jl or sth
 function split_view(matrix::MatrixOrView)::SubArray
     n, _ = div.(size(matrix), 2)
     return @inbounds @views begin 
