@@ -10,6 +10,7 @@ using Speed: benchmark, Result
 using Base.Threads
 using DataFrames: DataFrame
 using CSV
+using LinearAlgebra: inv
 
 function to_dataframe(result::Result)::DataFrame
     DataFrame(result.data, result.header)
@@ -35,9 +36,9 @@ function force_precompilation()::Nothing
 end
 
 function main()
-    force_precompilation()
+    # force_precompilation()
 
-    functions = [lu_decompose, determinant, inverse]
+    functions = [lu_decompose, determinant, inv]
     domain = 2 .^ collect(1:9)
 
     benchmark(functions, domain, 1, :flops) |> 

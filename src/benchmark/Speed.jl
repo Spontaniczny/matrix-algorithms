@@ -58,7 +58,7 @@ function benchmark(functions::Vector{Function}, sizes::AbstractArray{Int, 1}, n_
             println("Another datapoint")
             for (i, f) in enumerate(functions)
                 println("\tFunction nr: $i")
-                @threads :dynamic for _ in 1:n_evals
+                for _ in 1:n_evals
                     if variant === :time
                         time = @elapsed f(data)
                         put!(results, [size(data, 1), i, time])
@@ -70,7 +70,6 @@ function benchmark(functions::Vector{Function}, sizes::AbstractArray{Int, 1}, n_
             end
         end
     end
-
     Result(
         headers[variant],
         data |> hstack |> transpose
