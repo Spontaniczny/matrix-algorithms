@@ -28,7 +28,7 @@ function simple_decompose(matrix::MatrixOrView)::Tuple{Matrix, Matrix}
     return L, U
 end
 
-# Yes, this implementation is not up to my standards, but time is short
+# Yes, this implementation is not up to my standards, but time is short 
 function lu_decompose(matrix::MatrixOrView)::Tuple{Matrix, Matrix}
     @assert ispow2(size(matrix, 1))
     if size(matrix, 1) == 2 
