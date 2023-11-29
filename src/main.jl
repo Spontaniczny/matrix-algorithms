@@ -38,7 +38,7 @@ end
 function main()
     # force_precompilation()
 
-    functions = [lu_decompose, determinant, inv]
+    functions = [lu_decompose, determinant, inverse]
     domain = 2 .^ collect(1:9)
 
     benchmark(functions, domain, 1, :flops) |> 

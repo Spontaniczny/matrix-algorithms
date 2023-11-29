@@ -24,13 +24,19 @@ function inverse(matrix::Matrix)::Matrix
     A11, A12, A21, A22 = split_view(matrix)
     A11_inv = inverse(A11)
     S22 = A22 - A21 * A11_inv * A12
+    # Realizing that we needed to add the line below took two people 2 hours to figure out
+    # We still have no idea why the inverse method causes side effects
+    # We shall dare not ask again
+    A11_inv_copy = copy(A11_inv)
     S22_inv = inverse(S22)
-    B11 = A11_inv * (I + A12 * S22_inv * A21 * A11_inv)
-    B12 = -A11_inv * inverse(A12) * S22_inv
-    B21 = - S22_inv * A21 * A11_inv
+    B11 = A11_inv_copy + A11_inv_copy*A12*S22_inv*A21*A11_inv_copy
+    B12 = -A11_inv_copy*A12*S22_inv
+    B21 = -S22_inv*A21*A11_inv_copy
     B22 = S22_inv
-
+# 
     return [B11 B12; B21 B22]
+
+    return matrix
 end
 
 end # Inverse
