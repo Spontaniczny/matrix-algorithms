@@ -23,9 +23,6 @@ function simple_decompose(matrix::MatrixOrView)::Tuple{Matrix, Matrix}
     b = matrix[begin, end]
     c = matrix[end, begin]
     d = matrix[end, end]
-    if a ≈ 0
-        println("Kurwa mac ja pierdole macierzowe")
-    end
     L = [1 0; (c / a) 1]
     U = [a b; 0 d - b * c / a]
     return L, U
