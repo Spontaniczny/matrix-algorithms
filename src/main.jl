@@ -46,4 +46,7 @@ function main()
         save
 end
 
+# Commend for @Kuba because he always forget what to type in console
+# julia --project=. src/main.jl
+
 main()
