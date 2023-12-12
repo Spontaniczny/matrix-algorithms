@@ -55,12 +55,13 @@ function create_tree(A::MatrixOrView, top_left::Tuple{Int, Int} = (1, 1), r::Int
         node.v = v[:, 1:r]  # na pseudokodzie jest tu mnozenie Diagonal(node.s) * transpose(node.v)
         return node
     end
+    A11, A12, A21, A22 = split_view(A)
+    n, _ = div.(size(matrix), 2)
 
-    n, _ = div.(size(A), 2)
-    node.top_left_child = create_tree(@views A[begin:n, begin:n], (1, 1), r, ϵ)
-    node.top_right_child = create_tree(@views A[begin:n, n+1:end], (1, n+1), r, ϵ)
-    node.bottom_left_child = create_tree(@views A[n+1:end, begin:n], (n+1, 1), r, ϵ)
-    node.bottom_right_child = create_tree(@views A[n+1:end, n+1:end], (n+1, n+1), r, ϵ)
+    node.top_left_child = create_tree(A11, (1, 1), r, ϵ)
+    node.top_right_child = create_tree(A12, (1, n+1), r, ϵ)
+    node.bottom_left_child = create_tree(A21, (n+1, 1), r, ϵ)
+    node.bottom_right_child = create_tree(A22, (n+1, n+1), r, ϵ)
     return node
 end
 
@@ -110,7 +111,7 @@ end
 
 xd = 16
 matrix = get_random_nonzero_matrix(xd, 90)
-root = create_tree(matrix, (1, 1), 4, 5)
+root = create_tree(matrix, (1, 1), 4, 5.0)
 
 
 # n, _ = div.(size(matrix), 2)
