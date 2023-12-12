@@ -37,10 +37,10 @@ end
 function main()
     force_precompilation()
 
-    functions = [create_tree]
+    functions::Vector{Function} = [create_tree]
     domain = 2 .^ collect(1:9)
 
-    benchmark(functions, domain, 1, :flops) |> 
+    benchmark(functions, domain, 1, :time) |> 
         to_dataframe |> 
         save
 end
