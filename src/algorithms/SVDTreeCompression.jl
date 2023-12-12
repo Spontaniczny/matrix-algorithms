@@ -2,22 +2,9 @@ module SVDTreeCompression
 
 using TSVD
 using LinearAlgebra: Diagonal
-# using Decomposition: split_view
 
 
 MatrixOrView = Union{ Matrix, SubArray }
-
-
-mutable struct Node5
-    x
-    y
-    z
-    function Node5(y)
-        foo = new()
-        foo.y = y
-        return foo
-    end
-end
 
 mutable struct Tree_Node
     matrix :: MatrixOrView
@@ -109,43 +96,4 @@ function compare_matrixes(mat1, mat2)
     return sum((mat1 - mat2) .^ 2)    
 end
 
-xd = 16
-matrix = get_random_nonzero_matrix(xd, 90)
-root = create_tree(matrix, (1, 1), 4, 5.0)
-
-
-# n, _ = div.(size(matrix), 2)
-# matrix2 = @views matrix[begin:n, begin:n]
-# println(matrix)
-
-# matrix = [5 5 6 8 3; 7 4 2 3 4; 3 4 9 4 9; 4 7 9 1 5; 8 4 1 5 7]
-
-
-
-# println(matrix)
-# println(size(u))
-# println(size(s))
-# println(size(v))265
-# println(u * Diagonal(s))
-
-
-# minsqrdiff = Inf
-# mini = 0
-# for i in 1:xd-1
-#     global minsqrdiff, mini
-#     u, s, v = tsvd(matrix, i)
-#     svdmatrix = u*Diagonal(s)*transpose(v)
-#     # println(round.(svdmatrix, digits = 5))
-#     sqrdiff = compare_matrixes(matrix, svdmatrix)
-#     if sqrdiff < minsqrdiff
-#         minsqrdiff = sqrdiff
-#         mini = i
-#     end
-#     println(i, " ", round.(sqrdiff, digits = 5))
-# end
-
-# println("min ", mini, " ", minsqrdiff)
-# println("3.2569094358862474 vs ", minsqrdiff * 1024)
-
-
-end
+end # SVDTreeCompression
