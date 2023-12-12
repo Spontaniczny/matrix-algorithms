@@ -31,10 +31,30 @@ end
 function create_tree(A::MatrixOrView, top_left::Tuple{Int, Int} = (1, 1), r::Int64 = 1, ϵ::Float64 = 1.0)
     node = Tree_Node(A, top_left)
     node.is_zeros = iszero(A)
-    if node.is_zeros || min(size(node.matrix)...) < 16
+    if node.is_zeros || min(size(node.matrix)...) < 4
+    # if node.is_zeros
+    #     return node
+    # elseif min(size(node.matrix)...) < 16
         return node
     end
+
+    is_ok = false
+    counter = 0
+    while !is_ok && counter < 100
+        try
+            u, s, v = tsvd(A, r + 1)
+            is_ok = true
+
+        catch e
+            x, _ = size(A)
+            index = rand(1:x, 2)
+            A[index[1], index[2]] += 1e-15
+            counter += 1
+            
+        end
+    end
     u, s, v = tsvd(A, r + 1)
+    
     if s[r + 1] < ϵ
         node.is_compressed = true
         node.u = u[:, 1:r]
