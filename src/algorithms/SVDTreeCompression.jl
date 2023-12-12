@@ -41,7 +41,7 @@ mutable struct Tree_Node
     end
 end
 
-function create_tree(A, top_left = (1, 1), r = 1, ϵ = 1)
+function create_tree(A::MatrixOrView, top_left::Tuple{Int, Int} = (1, 1), r::Int64 = 1, ϵ::Float64 = 1.0)
     node = Tree_Node(A, top_left)
     node.is_zeros = iszero(A)
     if node.is_zeros || min(size(node.matrix)...) < 16
@@ -56,8 +56,7 @@ function create_tree(A, top_left = (1, 1), r = 1, ϵ = 1)
         return node
     end
 
-    node.is_compressed = false
-    n, _ = div.(size(matrix), 2)
+    n, _ = div.(size(A), 2)
     node.top_left_child = create_tree(@views A[begin:n, begin:n], (1, 1), r, ϵ)
     node.top_right_child = create_tree(@views A[begin:n, n+1:end], (1, n+1), r, ϵ)
     node.bottom_left_child = create_tree(@views A[n+1:end, begin:n], (n+1, 1), r, ϵ)
@@ -110,9 +109,8 @@ function compare_matrixes(mat1, mat2)
 end
 
 xd = 16
-matrix = get_random_nonzero_matrix(xd, 80)
-root = create_tree(matrix, (1, 1), 4, 1)
-println(count_total_tree_error(root))
+matrix = get_random_nonzero_matrix(xd, 90)
+root = create_tree(matrix, (1, 1), 4, 5)
 
 
 # n, _ = div.(size(matrix), 2)

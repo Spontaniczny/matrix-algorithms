@@ -28,7 +28,7 @@ end
 
 function force_precompilation()::Nothing
     @sync begin
-        @spawn create_tree(get_random_nonzero_matrix(20, 90))
+        @spawn create_tree(get_random_nonzero_matrix(16, 90))
     end
 
     nothing
