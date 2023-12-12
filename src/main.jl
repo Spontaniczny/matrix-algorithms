@@ -37,10 +37,10 @@ end
 function main()
     force_precompilation()
 
-    functions::Vector{Function} = [create_tree]
-    domain = 2 .^ collect(1:9)
+    sizes = 2 .^ collect(1:9)
+    zero_percentages = [80, 90, 95, 98, 99]
 
-    benchmark(functions, domain, 1, :time) |> 
+    benchmark(sizes, zero_percentages, 1) |> 
         to_dataframe |> 
         save
 end

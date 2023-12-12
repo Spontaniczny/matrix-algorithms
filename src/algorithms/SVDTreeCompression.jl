@@ -43,7 +43,7 @@ function create_tree(A::MatrixOrView, top_left::Tuple{Int, Int} = (1, 1), r::Int
         return node
     end
     A11, A12, A21, A22 = split_view(A)
-    n, _ = div.(size(matrix), 2)
+    n, _ = div.(size(A), 2)
 
     node.top_left_child = create_tree(A11, (1, 1), r, ϵ) # ask @integraledelebesgue why @view does not work here
     node.top_right_child = create_tree(A12, (1, n+1), r, ϵ) # ask @integraledelebesgue why @view does not work here
@@ -81,7 +81,7 @@ end
 
 function get_random_nonzero_matrix(size, zeros_percent = 0)
     matrix = rand(size, size)
-    println(size ^ 2 * zeros_percent ÷ 100)
+    # println(size ^ 2 * zeros_percent ÷ 100)
     for i in 1:(size ^ 2 * zeros_percent ÷ 100)
         index = rand(1:size, 2)
         while matrix[index[1], index[2]] == 0

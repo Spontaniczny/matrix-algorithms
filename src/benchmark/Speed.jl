@@ -4,6 +4,7 @@ export benchmark, Result
 using LinearAlgebra: det
 using Base.Threads
 using GFlops
+using SVDTreeCompression: create_tree, get_random_nonzero_matrix
 
 struct Result
     header::Vector{Symbol}
@@ -14,19 +15,12 @@ function hstack(vectors::Channel{Vector{Float64}})::Matrix{Float64}
     reduce(hcat, vectors)
 end
 
-function get_invertible(size)::Matrix
-    while(true)
-        matrix = rand(1:9, size, size)
-        if det(matrix) != 0
-            return matrix
-        end
-    end
-end
-
-function cases(sizes::AbstractArray{Int, 1})::Channel{Matrix{Float64}}
-    Channel{Matrix{Float64}}() do channel
-        for s in sizes
-            put!(channel, get_invertible(s))
+function cases(sizes::AbstractArray{Int, 1}, percentages::AbstractArray{Int, 1})::Channel{Tuple{Int, Int, Matrix{Float64}}}
+    Channel{Tuple{Int, Int, Matrix{Float64}}}() do channel
+        for size in sizes
+            for percentage in percentages
+                put!(channel, (size, percentage, get_random_nonzero_matrix(size, percentage)))
+            end
         end
     end
 end
@@ -52,26 +46,17 @@ function muls(counter::GFlops.Counter)::Int
     getfield.([counter], multiplications) |> sum
 end
 
-function benchmark(functions::Vector{Function}, sizes::AbstractArray{Int, 1}, n_evals::Int, variant::Symbol)::Result
+function benchmark(sizes::AbstractArray{Int, 1}, zero_percentages::AbstractArray{Int, 1}, n_evals::Int)::Result
     data = Channel{Vector{Float64}}() do results
-        for data in cases(sizes)
-            println("Another datapoint")
-            for (i, f) in enumerate(functions)
-                println("\tFunction nr: $i")
-                for _ in 1:n_evals
-                    if variant === :time
-                        time = @elapsed f(data)
-                        put!(results, [size(data, 1), i, time])
-                    elseif variant === :flops
-                        counter = @count_ops f(data)
-                        put!(results, [size(data, 1), i, adds(counter), muls(counter)])
-                    end
-                end
+        for (s, p, matrix) in cases(sizes, zero_percentages)
+            for i in 1:n_evals
+                println(s, ", ",  p)
+                time = @elapsed create_tree(matrix)
+                # put!(results, [size(data, 1), i, time])
             end
         end
     end
     Result(
-        headers[variant],
         data |> hstack |> transpose
     )
 end
