@@ -44,10 +44,7 @@ end
 function create_tree(A, top_left = (1, 1), r = 1, ϵ = 1)
     node = Tree_Node(A, top_left)
     node.is_zeros = iszero(A)
-    if node.is_zeros
-        return node
-    elseif min(size(A)...) < 16
-        node.is_compressed = false
+    if node.is_zeros || min(size(node.matrix)...) < 16
         return node
     end
     u, s, v = tsvd(A, r + 1)
@@ -59,6 +56,7 @@ function create_tree(A, top_left = (1, 1), r = 1, ϵ = 1)
         return node
     end
 
+    node.is_compressed = false
     n, _ = div.(size(matrix), 2)
     node.top_left_child = create_tree(@views A[begin:n, begin:n], (1, 1), r, ϵ)
     node.top_right_child = create_tree(@views A[begin:n, n+1:end], (1, n+1), r, ϵ)
@@ -68,7 +66,7 @@ function create_tree(A, top_left = (1, 1), r = 1, ϵ = 1)
 end
 
 function count_total_tree_error(node)
-    if node.is_zeros
+    if node.is_zeros || min(size(node.matrix)...) < 16
         return 0
     elseif node.is_compressed
         return compare_matrixes(node.matrix, node.u*Diagonal(node.s)*transpose(node.v))
@@ -107,17 +105,14 @@ function get_random_nonzero_matrix(size, zeros_percent = 0)
     return matrix
 end
 
-# function create_tree(A, r, ϵ)
-#     ...
-# end
-
 function compare_matrixes(mat1, mat2)
     return sum((mat1 - mat2) .^ 2)    
 end
 
 xd = 16
-matrix = get_random_nonzero_matrix(xd, 90)
-root = create_tree(matrix, (1, 1), 4, 5)
+matrix = get_random_nonzero_matrix(xd, 80)
+root = create_tree(matrix, (1, 1), 4, 1)
+println(count_total_tree_error(root))
 
 
 # n, _ = div.(size(matrix), 2)
