@@ -1,3 +1,5 @@
+module SVDTreeCompression
+
 using TSVD
 using LinearAlgebra: Diagonal
 # using Decomposition: split_view
@@ -152,3 +154,4 @@ root = create_tree(matrix, (1, 1), 4, 5)
 # println("3.2569094358862474 vs ", minsqrdiff * 1024)
 
 
+end

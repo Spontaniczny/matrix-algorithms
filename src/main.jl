@@ -5,6 +5,8 @@ Imports.@load_src_directories(".")
 using Determinant: determinant
 using Decomposition: lu_decompose
 using Inverse: inverse
+using SVDTreeCompression: create_tree, get_random_nonzero_matrix
+
 
 using Speed: benchmark, Result
 using Base.Threads
@@ -25,20 +27,17 @@ function save(df::DataFrame)
 end
 
 function force_precompilation()::Nothing
-    a = rand(8, 8)
     @sync begin
-        @spawn lu_decompose(a)
-        @spawn determinant(a)
-        @spawn inverse(a)
+        @spawn create_tree(get_random_nonzero_matrix(20, 90))
     end
 
     nothing
 end
 
 function main()
-    # force_precompilation()
+    force_precompilation()
 
-    functions = [lu_decompose, determinant, inverse]
+    functions = [create_tree]
     domain = 2 .^ collect(1:9)
 
     benchmark(functions, domain, 1, :flops) |> 
