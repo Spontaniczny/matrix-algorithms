@@ -2,6 +2,7 @@ module Speed
 export benchmark, Result
 
 using LinearAlgebra: det
+using TSVD
 using Base.Threads
 using GFlops
 using SVDTreeCompression: create_tree, get_random_nonzero_matrix
@@ -46,13 +47,21 @@ function muls(counter::GFlops.Counter)::Int
     getfield.([counter], multiplications) |> sum
 end
 
+
+function bench_case(matrix::Matrix, percentage::Int64, rank::Int64, delta::Float64)
+    time = @elapsed create_tree(matrix, (1, 1), rank, delta)
+    return [size(matrix, 1), percentage, rank, delta, time]
+end
+
 function benchmark(sizes::AbstractArray{Int, 1}, zero_percentages::AbstractArray{Int, 1}, n_evals::Int)::Result
     data = Channel{Vector{Float64}}() do results
-        for (s, p, matrix) in cases(sizes, zero_percentages)
+        for (n, p, matrix) in cases(sizes, zero_percentages)
             for i in 1:n_evals
-                println(s, ", ",  p)
-                time = @elapsed create_tree(matrix)
+                println(n, ", ",  p)
+                # time = @elapsed create_tree(matrix)
                 # put!(results, [size(data, 1), i, time])
+                U, d, V = tsvd(matrix, size(matrix)[begin] - 1)
+                put!(results, bench_case(matrix, p, 1, d[1]))
             end
         end
     end
