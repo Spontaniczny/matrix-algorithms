@@ -29,6 +29,7 @@ mutable struct Tree_Node
     u :: MatrixOrView
     s :: Vector
     v :: MatrixOrView
+    svd_error :: Float64
 
     function Tree_Node(matrix, top_left)
         foo = new()
@@ -40,11 +41,11 @@ end
 
 function create_tree(A, top_left = (1, 1), r = 1, ϵ = 1)
     node = Tree_Node(A, top_left)
-    if iszero(A)
-        node.is_zeros = true
+    node.is_zeros = iszero(A)
+    if node.is_zeros
         return node
     elseif min(size(A)...) < 16
-        node.is_zeros = false
+        node.is_compressed = false
         return node
     end
     u, s, v = tsvd(A, r + 1)
@@ -64,6 +65,21 @@ function create_tree(A, top_left = (1, 1), r = 1, ϵ = 1)
     return node
 end
 
+function count_total_tree_error(node)
+    if node.is_zeros
+        return 0
+    elseif node.is_compressed
+        return compare_matrixes(node.matrix, node.u*Diagonal(node.s)*transpose(node.v))
+    end
+
+    error = 0
+    error += count_total_tree_error(node.top_right_child)
+    error += count_total_tree_error(node.top_left_child)
+    error += count_total_tree_error(node.bottom_left_child)
+    error += count_total_tree_error(node.bottom_right_child)
+    return error
+
+end
 
 # TODO: Move to Common.jl or sth
 function split_view(matrix::MatrixOrView)
@@ -97,9 +113,9 @@ function compare_matrixes(mat1, mat2)
     return sum((mat1 - mat2) .^ 2)    
 end
 
-xd = 128
-matrix = get_random_nonzero_matrix(xd, 99)
-root = create_tree(matrix, (1, 1), 1, 5)
+xd = 16
+matrix = get_random_nonzero_matrix(xd, 90)
+root = create_tree(matrix, (1, 1), 4, 5)
 
 
 # n, _ = div.(size(matrix), 2)
