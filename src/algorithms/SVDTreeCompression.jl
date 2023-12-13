@@ -123,8 +123,20 @@ function compare_matrixes(mat1, mat2)
     return sum((mat1 - mat2) .^ 2)    
 end
 
-# matrix = get_random_nonzero_matrix(1024, 99)
-# xd = create_tree(matrix)
+# matrix = get_random_nonzero_matrix(128, 95)
+# for i in 1:128
+#     u, s, v = tsvd(matrix, i)
+#     matrix2 = u * Diagonal(s) * transpose(v)
+#     println(i, " ", s[i])
+#     println(i, " ", compare_matrixes(matrix, matrix2))
+#     println()
+# end
+
+
+
+# xd = create_tree(matrix, (1, 1), 20, 1.0)
 # x = count_total_tree_error(xd)
+
+
 
 end # SVDTreeCompression
