@@ -40,21 +40,25 @@ function create_tree(A::MatrixOrView, top_left::Tuple{Int, Int} = (1, 1), r::Int
         return node
     end
 
-    is_ok = false
-    counter = 0
-    while !is_ok && counter < 100
-        try
-            global u, s, v # julia does not see those variables outside while / try without global ??!!?!?
-            u, s, v = tsvd(A, r + 1)
-            is_ok = true
-        catch e
-            x, _ = size(A)
-            index = rand(1:x, 2)
-            A[index[1], index[2]] += 1e-15
-            counter += 1
-            
-        end
-    end
+    # is_ok = false
+    # counter = 0
+    
+    # while !is_ok && counter < 100
+    #     local u, s, v # or define to nothing
+    #     try
+    #         u, s, v = tsvd(A, r + 1)
+    #         is_ok = true
+    #     catch e
+    #         x, _ = size(A)
+    #         index = rand(1:x, 2)
+    #         A[index[1], index[2]] += 1e-15
+    #         counter += 1
+    #     end
+    # end
+
+    A += Diagonal(repeat([1e-15],  min(size(node.matrix)...)))
+    u, s, v = tsvd(A, r + 1)
+    A -= Diagonal(repeat([1e-15],  min(size(node.matrix)...)))
     # if s[r + 1] < ϵ || min(size(node.matrix)...) <= 4 to jest jakby force compress. Chcemy tak robić?
     if s[r + 1] < ϵ
         node.is_compressed = true
@@ -119,8 +123,8 @@ function compare_matrixes(mat1, mat2)
     return sum((mat1 - mat2) .^ 2)    
 end
 
-matrix = get_random_nonzero_matrix(4096, 99)
-xd = create_tree(matrix)
-x = 2
+# matrix = get_random_nonzero_matrix(1024, 99)
+# xd = create_tree(matrix)
+# x = count_total_tree_error(xd)
 
 end # SVDTreeCompression
