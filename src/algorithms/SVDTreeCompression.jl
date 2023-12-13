@@ -24,6 +24,8 @@ mutable struct Tree_Node
         foo = new()
         foo.matrix = matrix
         foo.top_left = top_left
+        is_zeros = false
+        is_compressed = false
         return foo
     end
 end
