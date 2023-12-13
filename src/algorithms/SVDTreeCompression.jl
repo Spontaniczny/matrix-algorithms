@@ -31,7 +31,7 @@ end
 function create_tree(A::MatrixOrView, top_left::Tuple{Int, Int} = (1, 1), r::Int64 = 1, ϵ::Float64 = 1.0)
     node = Tree_Node(A, top_left)
     node.is_zeros = iszero(A)
-    if node.is_zeros || min(size(node.matrix)...) < 4
+    if node.is_zeros || min(size(node.matrix)...) <= 2
     # if node.is_zeros
     #     return node
     # elseif min(size(node.matrix)...) < 16
@@ -42,9 +42,9 @@ function create_tree(A::MatrixOrView, top_left::Tuple{Int, Int} = (1, 1), r::Int
     counter = 0
     while !is_ok && counter < 100
         try
+            global u, s, v # julia does not see those variables outside while / try without global ??!!?!?
             u, s, v = tsvd(A, r + 1)
             is_ok = true
-
         catch e
             x, _ = size(A)
             index = rand(1:x, 2)
@@ -53,8 +53,7 @@ function create_tree(A::MatrixOrView, top_left::Tuple{Int, Int} = (1, 1), r::Int
             
         end
     end
-    u, s, v = tsvd(A, r + 1)
-    
+    # if s[r + 1] < ϵ || min(size(node.matrix)...) <= 4 to jest jakby force compress. Chcemy tak robić?
     if s[r + 1] < ϵ
         node.is_compressed = true
         node.u = u[:, 1:r]
@@ -65,6 +64,8 @@ function create_tree(A::MatrixOrView, top_left::Tuple{Int, Int} = (1, 1), r::Int
     A11, A12, A21, A22 = split_view(A)
     n, _ = div.(size(A), 2)
 
+    node.is_compressed = false
+
     node.top_left_child = create_tree(A11, (1, 1), r, ϵ) # ask @integraledelebesgue why @view does not work here
     node.top_right_child = create_tree(A12, (1, n+1), r, ϵ) # ask @integraledelebesgue why @view does not work here
     node.bottom_left_child = create_tree(A21, (n+1, 1), r, ϵ) # ask @integraledelebesgue why @view does not work here
@@ -73,7 +74,7 @@ function create_tree(A::MatrixOrView, top_left::Tuple{Int, Int} = (1, 1), r::Int
 end
 
 function count_total_tree_error(node)
-    if node.is_zeros || min(size(node.matrix)...) < 16
+    if node.is_zeros || min(size(node.matrix)...) <= 2
         return 0
     elseif node.is_compressed
         return compare_matrixes(node.matrix, node.u*Diagonal(node.s)*transpose(node.v))
@@ -115,5 +116,9 @@ end
 function compare_matrixes(mat1, mat2)
     return sum((mat1 - mat2) .^ 2)    
 end
+
+matrix = get_random_nonzero_matrix(4096, 99)
+xd = create_tree(matrix)
+x = 2
 
 end # SVDTreeCompression
