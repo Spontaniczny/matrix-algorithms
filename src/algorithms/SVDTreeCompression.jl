@@ -61,10 +61,14 @@ function create_tree(A::MatrixOrView, top_left::Tuple{Int, Int} = (1, 1), r::Int
     A -= Diagonal(repeat([1e-15],  min(size(node.matrix)...)))
     # if s[r + 1] < ϵ || min(size(node.matrix)...) <= 4 to jest jakby force compress. Chcemy tak robić?
     if s[r + 1] < ϵ
+        i = r + 1
+        while s[i] < ϵ && i != 1
+            i -= 1
+        end
         node.is_compressed = true
-        node.u = u[:, 1:r]
-        node.s = s[1:r]
-        node.v = v[:, 1:r]  # na pseudokodzie jest tu mnozenie Diagonal(node.s) * transpose(node.v)
+        node.u = u[:, 1:i]
+        node.s = s[1:i]
+        node.v = v[:, 1:i]  # na pseudokodzie jest tu mnozenie Diagonal(node.s) * transpose(node.v)
         return node
     end
     A11, A12, A21, A22 = split_view(A)
@@ -72,10 +76,10 @@ function create_tree(A::MatrixOrView, top_left::Tuple{Int, Int} = (1, 1), r::Int
 
     node.is_compressed = false
 
-    node.top_left_child = create_tree(A11, (1, 1), r, ϵ) # ask @integraledelebesgue why @view does not work here
-    node.top_right_child = create_tree(A12, (1, n+1), r, ϵ) # ask @integraledelebesgue why @view does not work here
-    node.bottom_left_child = create_tree(A21, (n+1, 1), r, ϵ) # ask @integraledelebesgue why @view does not work here
-    node.bottom_right_child = create_tree(A22, (n+1, n+1), r, ϵ) # ask @integraledelebesgue why @view does not work here
+    node.top_left_child = create_tree(A11, node.top_left, r, ϵ) # ask @integraledelebesgue why @view does not work here
+    node.top_right_child = create_tree(A12, (node.top_left[1], node.top_left[2] + n), r, ϵ) # ask @integraledelebesgue why @view does not work here
+    node.bottom_left_child = create_tree(A21, (node.top_left[1] + n, node.top_left[2]), r, ϵ) # ask @integraledelebesgue why @view does not work here
+    node.bottom_right_child = create_tree(A22, (node.top_left[1] + n, node.top_left[2] + n), r, ϵ) # ask @integraledelebesgue why @view does not work here
     return node
 end
 
@@ -83,7 +87,7 @@ function count_total_tree_error(node)
     if node.is_zeros || min(size(node.matrix)...) <= 2
         return 0
     elseif node.is_compressed
-        return compare_matrixes(node.matrix, node.u*Diagonal(node.s)*transpose(node.v))
+        return compare_matrixes(node.matrix, node.u * Diagonal(node.s) * transpose(node.v))
     end
 
     error = 0
@@ -123,7 +127,45 @@ function compare_matrixes(mat1, mat2)
     return sum((mat1 - mat2) .^ 2)    
 end
 
-# matrix = get_random_nonzero_matrix(128, 95)
+function draw_tree(tree)
+
+    function fill_matrix(matrix, node)
+
+        if node.is_zeros
+            # println("!@#")
+            return
+        elseif min(size(node.matrix)...) <= 2
+            # println("XD")
+            return
+        elseif node.is_compressed
+            sp = node.top_left #start point
+            node_size = size(node.matrix)[1]
+            no_ranks = size(node.s)[1]
+            # println(sp)
+            # println(node_size)
+
+            for i in 0:no_ranks-1
+                matrix[sp[1]:sp[1]+node_size-1, sp[2]+i] .= 0
+                matrix[sp[1]+i, sp[2]:sp[2]+node_size-1] .= 0
+            end
+
+            return
+        end
+        
+        fill_matrix(matrix, node.top_right_child)
+        fill_matrix(matrix, node.top_left_child)
+        fill_matrix(matrix, node.bottom_left_child)
+        fill_matrix(matrix, node.bottom_right_child)
+        return
+    end
+
+    matrix = ones(size(tree.matrix))
+    fill_matrix(matrix, tree)
+    plot(Gray.(matrix))
+    return matrix
+end
+
+matrix = get_random_nonzero_matrix(256, 98)
 # for i in 1:128
 #     u, s, v = tsvd(matrix, i)
 #     matrix2 = u * Diagonal(s) * transpose(v)
@@ -134,9 +176,10 @@ end
 
 
 
-# xd = create_tree(matrix, (1, 1), 20, 1.0)
+# xd = create_tree(matrix, (1, 1), 4, 0.001)
 # x = count_total_tree_error(xd)
+# xd2 = draw_tree(xd)
 
-
+# println(x)
 
 end # SVDTreeCompression
