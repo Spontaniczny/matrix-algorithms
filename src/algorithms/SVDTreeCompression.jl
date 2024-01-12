@@ -1,7 +1,10 @@
 module SVDTreeCompression
 
+using Pkg
 using TSVD
-using LinearAlgebra: Diagonal
+using LinearAlgebra: Diagonal, svd
+using Colors: Gray
+using Plots: plot, savefig
 
 
 MatrixOrView = Union{ Matrix, SubArray }
@@ -56,12 +59,17 @@ function create_tree(A::MatrixOrView, top_left::Tuple{Int, Int} = (1, 1), r::Int
     #     end
     # end
 
-    A += Diagonal(repeat([1e-15],  min(size(node.matrix)...)))
-    u, s, v = tsvd(A, r + 1)
-    A -= Diagonal(repeat([1e-15],  min(size(node.matrix)...)))
+    # julia's tsvd is broken, so we use normal svd, but we take min s values < ϵ
+    # A += Diagonal(repeat([1e-15],  min(size(node.matrix)...)))
+    # u, s, v = tsvd(A, r + 1)
+    # A -= Diagonal(repeat([1e-15],  min(size(node.matrix)...)))
+
+    u, s, v = svd(A)
+
     # if s[r + 1] < ϵ || min(size(node.matrix)...) <= 4 to jest jakby force compress. Chcemy tak robić?
-    if s[r + 1] < ϵ
-        i = r + 1
+    i = min(r + 1, size(s)[1])
+    if s[i] < ϵ
+        # to use the smallest value < ϵ
         while s[i] < ϵ && i != 1
             i -= 1
         end
@@ -83,7 +91,7 @@ function create_tree(A::MatrixOrView, top_left::Tuple{Int, Int} = (1, 1), r::Int
     return node
 end
 
-function count_total_tree_error(node)
+function count_absolut_tree_error(node)
     if node.is_zeros || min(size(node.matrix)...) <= 2
         return 0
     elseif node.is_compressed
@@ -91,12 +99,15 @@ function count_total_tree_error(node)
     end
 
     error = 0
-    error += count_total_tree_error(node.top_right_child)
-    error += count_total_tree_error(node.top_left_child)
-    error += count_total_tree_error(node.bottom_left_child)
-    error += count_total_tree_error(node.bottom_right_child)
+    error += count_absolut_tree_error(node.top_right_child)
+    error += count_absolut_tree_error(node.top_left_child)
+    error += count_absolut_tree_error(node.bottom_left_child)
+    error += count_absolut_tree_error(node.bottom_right_child)
     return error
+end
 
+function count_relative_tree_error(node, abs_error)
+    return abs_error / (size(node.matrix)[1] ^ 2)
 end
 
 # TODO: Move to Common.jl or sth
@@ -136,6 +147,9 @@ function draw_tree(tree)
             return
         elseif min(size(node.matrix)...) <= 2
             # println("XD")
+            sp = node.top_left #start point
+            node_size = size(node.matrix)[1]
+            matrix[sp[1]:sp[1]+node_size-1, sp[2]:sp[2]+node_size-1] .= 0
             return
         elseif node.is_compressed
             sp = node.top_left #start point
@@ -161,25 +175,52 @@ function draw_tree(tree)
 
     matrix = ones(size(tree.matrix))
     fill_matrix(matrix, tree)
-    plot(Gray.(matrix))
+    # plot(Gray.(matrix)) # it works only in console afaik
     return matrix
 end
 
-matrix = get_random_nonzero_matrix(256, 98)
+# matrix = get_random_nonzero_matrix(128, 99)
+# s = svd(matrix)
 # for i in 1:128
 #     u, s, v = tsvd(matrix, i)
+#     # u, s, v = svd(matrix)
+#     # matrix2 = u[:, 1:i] * Diagonal(asd[1:i]) * transpose(v[:, 1:i])
 #     matrix2 = u * Diagonal(s) * transpose(v)
-#     println(i, " ", s[i])
+#     # println(i, " ", s[i], " ", asd[i])
 #     println(i, " ", compare_matrixes(matrix, matrix2))
 #     println()
 # end
 
 
+# m_size_tab = [256, 512, 1024]
+# zeros_percent_tab = [99, 98, 95, 90, 80] 
 
-# xd = create_tree(matrix, (1, 1), 4, 0.001)
-# x = count_total_tree_error(xd)
-# xd2 = draw_tree(xd)
+# _, s, _ = svd(matrix)
 
-# println(x)
+# s_tab = [s[2], s[length(s) ÷ 2], s[end]]
+# b_tab = [1, 4]
+
+# s = s[2]
+# s = s[length(s) ÷ 2]
+# s = s[end]
+
+# for m_size in m_size_tab
+#     for zeros_percent in zeros_percent_tab
+#         for b in b_tab
+#             for s in s_tab
+#                 println(m_size, zeros_percent, b, s)
+#                 matrix = get_random_nonzero_matrix(m_size, zeros_percent)
+#                 xd = create_tree(matrix, (1, 1), b, s)
+#                 # x = count_absolut_tree_error(xd)
+#                 # x_rel = count_relative_tree_error(xd, x)
+#                 xd2 = draw_tree(xd)
+#                 # println(x)
+#                 # println(x_rel)
+#                 plot(Gray.(xd2), title = "$(m_size)x$(m_size), $(zeros_percent)%, b=$b, ϵ=$(round(s, digits = 5))", dpi = 600, grid = false)
+#                 savefig("benchmarks/lab3/$(m_size)x$(m_size)_$(zeros_percent)%_b=$(b)_eps=$(round(s, digits = 5)).png")
+#             end
+#         end
+#     end
+# end
 
 end # SVDTreeCompression
