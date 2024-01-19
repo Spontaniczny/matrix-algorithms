@@ -1,6 +1,5 @@
 module SVDTreeCompression
 
-using Pkg
 using TSVD
 using LinearAlgebra: Diagonal, svd
 using Colors: Gray
