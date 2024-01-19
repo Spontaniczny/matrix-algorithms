@@ -6,6 +6,7 @@ using LinearAlgebra: Diagonal, svd
 using Colors: Gray
 using Plots: plot, savefig
 
+export create_tree, count_absolut_tree_error, count_relative_tree_error, draw_tree, compare_matrixes
 
 MatrixOrView = Union{ Matrix, SubArray }
 
