@@ -37,27 +37,8 @@ function create_tree(A::MatrixOrView, top_left::Tuple{Int, Int} = (1, 1), r::Int
     node = Tree_Node(A, top_left)
     node.is_zeros = iszero(A)
     if node.is_zeros || min(size(node.matrix)...) <= 2
-    # if node.is_zeros
-    #     return node
-    # elseif min(size(node.matrix)...) < 16
         return node
     end
-
-    # is_ok = false
-    # counter = 0
-    
-    # while !is_ok && counter < 100
-    #     local u, s, v # or define to nothing
-    #     try
-    #         u, s, v = tsvd(A, r + 1)
-    #         is_ok = true
-    #     catch e
-    #         x, _ = size(A)
-    #         index = rand(1:x, 2)
-    #         A[index[1], index[2]] += 1e-15
-    #         counter += 1
-    #     end
-    # end
 
     # julia's tsvd is broken, so we use normal svd, but we take min s values < ϵ
     # A += Diagonal(repeat([1e-15],  min(size(node.matrix)...)))
